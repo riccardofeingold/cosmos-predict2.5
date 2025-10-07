@@ -1,0 +1,11 @@
+{
+  "inference_type": "text2world",
+  "samples": {
+    "robotic_tightening": {
+      "prompt_path": "robot_tightening.txt"
+    },
+    "snowy_stop_light": {
+      "prompt_path": "snowy_stop_light.txt"
+    }
+  }
+}

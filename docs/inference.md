@@ -37,7 +37,7 @@ To change the model, pass `--model`:
 | Size | Arguments |
 | --- | --- |
 | 2B | `--model 2B/post-trained` |
-| 14B | `--model 14B/pre-trained` |
+| 14B | Coming soon! |
 
 Parameters are specified as json:
 

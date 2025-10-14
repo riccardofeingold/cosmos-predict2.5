@@ -14,6 +14,15 @@
 # limitations under the License.
 
 """Action-conditioned Video2World inference script."""
+import os
+import sys
+
+hf_home = os.getenv("HF_HOME")
+if not hf_home:
+    print("Error: The environment variable HF_HOME is not set.")
+    sys.exit(1)
+
+print(f"HF_HOME is set to: {hf_home}")
 
 from pathlib import Path
 from typing import Annotated

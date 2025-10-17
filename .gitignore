@@ -6,6 +6,8 @@ __pycache__/
 # C extensions
 *.so
 
+.vscode/
+
 # Distribution / packaging
 .Python
 build/
@@ -204,3 +206,7 @@ cython_debug/
 !assets/**/*.png
 !assets/**/*.jpg
 !assets/**/*.mp4
+
+# datasets related
+processed_sim_franka_data/
+test_h5_data/

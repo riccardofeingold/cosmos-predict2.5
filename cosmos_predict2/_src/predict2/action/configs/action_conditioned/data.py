@@ -27,10 +27,10 @@ from cosmos_predict2._src.predict2.action.datasets.dataset_local import Dataset_
 if INTERNAL:
     base_path = "/project/cosmos/weichengt/bridge/"
 else:
-    base_path = "datasets/bridge/"
-train_annotation_path = os.path.join(base_path, "annotation/train")
-val_annotation_path = os.path.join(base_path, "annotation/val")
-test_annotation_path = os.path.join(base_path, "annotation/test")
+    base_path = "/data/Datasets/converted_droid_dataset"
+train_annotation_path = os.path.join(base_path, "annotation")
+val_annotation_path = os.path.join(base_path, "annotation")
+test_annotation_path = os.path.join(base_path, "annotation")
 
 
 # experiment for next-frame prediction
@@ -90,6 +90,33 @@ bridge_13frame_480_640_val_dataset = L(Dataset_3D)(
 )
 
 
+droid_frame_180_320_train_dataset = L(Dataset_3D)(
+    train_annotation_path=train_annotation_path,
+    val_annotation_path=val_annotation_path,
+    test_annotation_path=test_annotation_path,
+    video_path=base_path,
+    fps_downsample_ratio=1,
+    num_action_per_chunk=12,
+    cam_ids=[0, 1, 2],
+    accumulate_action=False,
+    video_size=[180, 320],
+    val_start_frame_interval=1,
+    mode="train",
+)
+droid_frame_180_320_val_dataset = L(Dataset_3D)(
+    train_annotation_path=train_annotation_path,
+    val_annotation_path=val_annotation_path,
+    test_annotation_path=test_annotation_path,
+    video_path=base_path,
+    fps_downsample_ratio=1,
+    num_action_per_chunk=12,
+    cam_ids=[0, 1, 2],
+    accumulate_action=False,
+    video_size=[180, 320],
+    val_start_frame_interval=1,
+    mode="val",
+)
+
 # create dataloader for each dataset
 def get_sampler(dataset):
     return DistributedSampler(
@@ -127,6 +154,18 @@ bridge_13frame_480_640_val_dataloader = L(DataLoader)(
     drop_last=True,
 )
 
+droid_frame_180_320_train_dataloader = L(DataLoader)(
+    dataset=droid_frame_180_320_train_dataset,
+    sampler=L(get_sampler)(dataset=droid_frame_180_320_train_dataset),
+    batch_size=1,
+    drop_last=True,
+)
+droid_frame_180_320_val_dataloader = L(DataLoader)(
+    dataset=droid_frame_180_320_val_dataset,
+    sampler=L(get_sampler)(dataset=droid_frame_180_320_val_dataset),
+    batch_size=1,
+    drop_last=True,
+)
 
 def register_training_and_val_data():
     cs = ConfigStore.instance()
@@ -173,4 +212,18 @@ def register_training_and_val_data():
         package="dataloader_val",
         name="bridge_13frame_480_640_val",
         node=bridge_13frame_480_640_val_dataloader,
+    )
+
+    # droid 180 320
+    cs.store(
+        group="data_train",
+        package="dataloader_train",
+        name="droid_frame_180_320_train",
+        node=droid_frame_180_320_train_dataloader,
+    )
+    cs.store(
+        group="data_val",
+        package="dataloader_val",
+        name="droid_frame_180_320_val",
+        node=droid_frame_180_320_val_dataloader,
     )

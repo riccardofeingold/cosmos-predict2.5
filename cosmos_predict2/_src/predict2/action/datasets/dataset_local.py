@@ -35,7 +35,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms as T
 from tqdm import tqdm
 
-from cosmos_predict2._src.common.utils.dataset_utils import Resize_Preprocess, ToTensorVideo, euler2rotm, rotm2euler
+from cosmos_predict2._src.common.utils.dataset_utils import Resize_Preprocess, ToTensorVideo, euler2rotm, rotm2euler, quat2rotm, rotm2quat
 from cosmos_predict2._src.imaginaire.flags import INTERNAL
 
 
@@ -270,7 +270,8 @@ class Dataset_3D(Dataset):
         all_cont_gripper_states = np.array(label[self._gripper_key])
         states = all_states[frame_ids]
         cont_gripper_states = all_cont_gripper_states[frame_ids]
-        arm_states = states[:, :6]
+        using_quat = states.shape[1] == 7 + cont_gripper_states.shape[1]
+        arm_states = states[:, :7] if using_quat else states[:, :6]
         assert arm_states.shape[0] == self.sequence_length
         assert cont_gripper_states.shape[0] == self.sequence_length
         return arm_states, cont_gripper_states
@@ -280,21 +281,26 @@ class Dataset_3D(Dataset):
         all_cont_gripper_states = np.array(label[self._gripper_key])
         states = all_states[frame_ids]
         cont_gripper_states = all_cont_gripper_states[frame_ids]
-        arm_states = states[:, :6]
+        using_quat = states.shape[1] == 7 + cont_gripper_states.shape[1]
+        arm_states = states[:, :7] if using_quat else states[:, :6]
         return arm_states, cont_gripper_states
 
     def _get_all_actions(self, arm_states, gripper_states, accumulate_action):
         action_num = arm_states.shape[0] - 1
         action = np.zeros((action_num, self.action_dim))
+        # TODO: Hardcoded for ORCA Hand
+        using_quat = arm_states.shape[1] == 7
+
         if accumulate_action:
             first_xyz = arm_states[0, 0:3]
-            first_rpy = arm_states[0, 3:6]
-            first_rotm = euler2rotm(first_rpy)
+            first_rot = arm_states[0, 3:7] if using_quat else arm_states[0, 3:6]
+            first_rotm = quat2rotm(first_rot) if using_quat else euler2rotm(first_rot)
+
             for k in range(1, action_num + 1):
                 curr_xyz = arm_states[k, 0:3]
-                curr_rpy = arm_states[k, 3:6]
                 curr_gripper = gripper_states[k]
-                curr_rotm = euler2rotm(curr_rpy)
+                curr_rot = arm_states[k, 3:7] if using_quat else arm_states[k, 3:6]
+                curr_rotm = quat2rotm(curr_rot) if using_quat else euler2rotm(curr_rot)
                 rel_xyz = np.dot(first_rotm.T, curr_xyz - first_xyz)
                 rel_rotm = first_rotm.T @ curr_rotm
                 rel_rpy = rotm2euler(rel_rotm)
@@ -304,12 +310,12 @@ class Dataset_3D(Dataset):
         else:
             for k in range(1, action_num + 1):
                 prev_xyz = arm_states[k - 1, 0:3]
-                prev_rpy = arm_states[k - 1, 3:6]
-                prev_rotm = euler2rotm(prev_rpy)
+                prev_rot = arm_states[k - 1, 3:7] if using_quat else arm_states[k - 1, 3:6]
+                prev_rotm = quat2rotm(prev_rot) if using_quat else euler2rotm(prev_rot)
                 curr_xyz = arm_states[k, 0:3]
-                curr_rpy = arm_states[k, 3:6]
+                curr_rot = arm_states[k, 3:7] if using_quat else arm_states[k, 3:6]
+                curr_rotm = quat2rotm(curr_rot) if using_quat else euler2rotm(curr_rot)
                 curr_gripper = gripper_states[k]
-                curr_rotm = euler2rotm(curr_rpy)
                 rel_xyz = np.dot(prev_rotm.T, curr_xyz - prev_xyz)
                 rel_rotm = prev_rotm.T @ curr_rotm
                 rel_rpy = rotm2euler(rel_rotm)
@@ -320,15 +326,19 @@ class Dataset_3D(Dataset):
 
     def _get_actions(self, arm_states, gripper_states, accumulate_action):
         action = np.zeros((self.sequence_length - 1, self.action_dim))
+        using_quat = arm_states.shape[1] == 7
+
+        # TODO: make it work with quaternion too
         if accumulate_action:
             first_xyz = arm_states[0, 0:3]
-            first_rpy = arm_states[0, 3:6]
-            first_rotm = euler2rotm(first_rpy)
+            first_rot = arm_states[0, 3:7] if using_quat else arm_states[0, 3:6]
+            first_rotm = quat2rotm(first_rot) if using_quat else euler2rotm(first_rot)
+
             for k in range(1, self.sequence_length):
                 curr_xyz = arm_states[k, 0:3]
-                curr_rpy = arm_states[k, 3:6]
+                curr_rot = arm_states[k, 3:7] if using_quat else arm_states[k, 3:6]
                 curr_gripper = gripper_states[k]
-                curr_rotm = euler2rotm(curr_rpy)
+                curr_rotm = quat2rotm(curr_rot) if using_quat else euler2rotm(curr_rot)
                 rel_xyz = np.dot(first_rotm.T, curr_xyz - first_xyz)
                 rel_rotm = first_rotm.T @ curr_rotm
                 rel_rpy = rotm2euler(rel_rotm)
@@ -338,12 +348,12 @@ class Dataset_3D(Dataset):
         else:
             for k in range(1, self.sequence_length):
                 prev_xyz = arm_states[k - 1, 0:3]
-                prev_rpy = arm_states[k - 1, 3:6]
-                prev_rotm = euler2rotm(prev_rpy)
+                prev_rot = arm_states[k - 1, 3:7] if using_quat else arm_states[k - 1, 3:6]
+                prev_rotm = quat2rotm(prev_rot) if using_quat else euler2rotm(prev_rot)
                 curr_xyz = arm_states[k, 0:3]
-                curr_rpy = arm_states[k, 3:6]
+                curr_rot = arm_states[k, 3:7] if using_quat else arm_states[k, 3:6]
                 curr_gripper = gripper_states[k]
-                curr_rotm = euler2rotm(curr_rpy)
+                curr_rotm = quat2rotm(curr_rot) if using_quat else euler2rotm(curr_rot)
                 rel_xyz = np.dot(prev_rotm.T, curr_xyz - prev_xyz)
                 rel_rotm = prev_rotm.T @ curr_rotm
                 rel_rpy = rotm2euler(rel_rotm)
@@ -393,6 +403,7 @@ class Dataset_3D(Dataset):
                         data["__key__"] = label["episode_metadata"]["segment_id"]
 
             # Just add these to fit the interface
+            # TODO: does that have an impact on training performance? What if the videos use FPS=5Hz instead of 4Hz?
             data["fps"] = 4
             data["image_size"] = 256 * torch.ones(4).cuda()
             data["num_frames"] = self.sequence_length

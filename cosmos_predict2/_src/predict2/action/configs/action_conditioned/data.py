@@ -120,6 +120,34 @@ droid_frame_180_320_val_dataset = L(Dataset_3D)(
     mode="val",
 )
 
+# -------------------------------ORCA DATASET 320 256-------------------------------
+orca_frame_320_256_train_dataset = L(Dataset_3D)(
+    train_annotation_path=train_annotation_path,
+    val_annotation_path=val_annotation_path,
+    test_annotation_path=test_annotation_path,
+    video_path=base_path,
+    fps_downsample_ratio=1,
+    num_action_per_chunk=12,
+    cam_ids=[0],
+    accumulate_action=False,
+    video_size=[320, 256],
+    val_start_frame_interval=1,
+    mode="train",
+)
+orca_frame_320_256_val_dataset = L(Dataset_3D)(
+    train_annotation_path=train_annotation_path,
+    val_annotation_path=val_annotation_path,
+    test_annotation_path=test_annotation_path,
+    video_path=base_path,
+    fps_downsample_ratio=1,
+    num_action_per_chunk=12,
+    cam_ids=[0],
+    accumulate_action=False,
+    video_size=[320, 256],
+    val_start_frame_interval=1,
+    mode="val",
+)
+
 # create dataloader for each dataset
 def get_sampler(dataset):
     return DistributedSampler(
@@ -157,6 +185,7 @@ bridge_13frame_480_640_val_dataloader = L(DataLoader)(
     drop_last=True,
 )
 
+# -------------------------------DROID DATASET 180 320-------------------------------
 droid_frame_180_320_train_dataloader = L(DataLoader)(
     dataset=droid_frame_180_320_train_dataset,
     sampler=L(get_sampler)(dataset=droid_frame_180_320_train_dataset),
@@ -166,6 +195,20 @@ droid_frame_180_320_train_dataloader = L(DataLoader)(
 droid_frame_180_320_val_dataloader = L(DataLoader)(
     dataset=droid_frame_180_320_val_dataset,
     sampler=L(get_sampler)(dataset=droid_frame_180_320_val_dataset),
+    batch_size=1,
+    drop_last=True,
+)
+
+# -------------------------------ORCA DATASET 320 256-------------------------------
+orca_frame_320_256_train_dataloader = L(DataLoader)(
+    dataset=orca_frame_320_256_train_dataset,
+    sampler=L(get_sampler)(dataset=orca_frame_320_256_train_dataset),
+    batch_size=1,
+    drop_last=True,
+)
+orca_frame_320_256_val_dataloader = L(DataLoader)(
+    dataset=orca_frame_320_256_val_dataset,
+    sampler=L(get_sampler)(dataset=orca_frame_320_256_val_dataset),
     batch_size=1,
     drop_last=True,
 )
@@ -227,6 +270,20 @@ def register_training_and_val_data():
         package="dataloader_val",
         name="droid_frame_180_320_val",
         node=droid_frame_180_320_val_dataloader,
+    )
+
+    # orca 320 256
+    cs.store(
+        group="data_train",
+        package="dataloader_train",
+        name="orca_frame_320_256_train",
+        node=orca_frame_320_256_train_dataloader,
+    )
+    cs.store(
+        group="data_val",
+        package="dataloader_val",
+        name="orca_frame_320_256_val",
+        node=orca_frame_320_256_val_dataloader,
     )
 
     # Register gr00t_customized_gr1 data

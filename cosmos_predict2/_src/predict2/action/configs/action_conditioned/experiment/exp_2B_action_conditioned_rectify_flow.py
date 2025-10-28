@@ -611,6 +611,70 @@ AC_REASON_EMBEDDINGS_RECTIFIED_FLOW_2B = LazyDict(
     flags={"allow_objects": True},
 )
 
+AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B = LazyDict(
+    dict(
+        defaults=[
+            "/experiment/Stage-c_pt_4-reason_embeddings-v1p1-Index-26-Size-2B-Res-720-Fps-16-Note-T2V_high_sigma_loss_reweighted_1_1_rectified_flow_only",
+            {"override /model": "action_conditioned_video2world_fsdp_rectified_flow"},
+            {"override /net": "cosmos_v1_2B_action_conditioned"},
+            {"override /conditioner": "action_conditioned_video_conditioner"},
+            {"override /data_train": "mock"},
+            {"override /data_val": "mock"},
+        ],
+        job=dict(
+            group="official_runs_vid2vid",
+            name="cosmos_predict2p5_2B_reason_embeddings_action_conditioned_rectified_flow_orca_frame_320_256_",
+            project="cosmos_predict2_action_conditioned",
+        ),
+        optimizer=dict(
+            lr=2 ** (-14.5),  # 2**(-14.5) = 3.0517578125e-05
+            weight_decay=0.1,
+        ),
+        checkpoint=dict(
+            save_iter=2_000,
+            load_path="cosmos_diffusion_v2/official_runs_text2world/Stage-c_pt_4-reason_embeddings-v1p1-Index-26-Size-2B-Res-720-Fps-16-Note-T2V_high_sigma_loss_reweighted/checkpoints/iter_000010000/",
+            load_training_state=False,
+            strict_resume=False,
+        ),
+        trainer=dict(
+            callbacks=dict(
+                every_n_sample_reg=dict(
+                    every_n=500,
+                    do_x0_prediction=False,
+                    guidance=[0],
+                    fps=5,
+                ),
+                every_n_sample_ema=dict(
+                    every_n=500,
+                    do_x0_prediction=False,
+                    guidance=[0],
+                    fps=5,
+                ),
+            ),
+        ),
+        model_parallel=dict(
+            context_parallel_size=1,
+        ),
+        model=dict(
+            config=dict(
+                # NOTE: this should be 1 for the action conditioned model
+                min_num_conditional_frames=1,
+                max_num_conditional_frames=1,
+                # overwrite the probs to disable random num of conditional frames
+                conditional_frames_probs=None,
+                state_t=1 + 12 // 4,
+                net=dict(
+                    action_dim=6 + 17, # 6 for orca hand + 17 for orca fingers
+                    num_action_per_chunk=12,
+                ),
+            ),
+        ),
+        dataloader_train=dict(
+            batch_size=2,
+        ),
+    ),
+    flags={"allow_objects": True},
+)
 
 """
 torchrun --nproc_per_node=1 --master_port=12341 -m scripts.train --config=cosmos_predict2/_src/predict2/action/configs/action_conditioned/config.py  -- experiment=cosmos_predict2p5_2B_reason_embeddings_action_conditioned_rectified_flow_bridge_13frame_256x320 ~dataloader_train.dataloaders
@@ -681,6 +745,10 @@ for _item, _item_wo_resume, _item_mock_wo_resume in [
     [
         AC_CHUNK_MULTI_VIEW_REASON_EMBEDDINGS_RECTIFIED_FLOW_2B_BRIDGE_13FRAME_256X320,
         *build_debug_runs(AC_CHUNK_MULTI_VIEW_REASON_EMBEDDINGS_RECTIFIED_FLOW_2B_BRIDGE_13FRAME_256X320),
+    ],
+    [
+        AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B,
+        *build_debug_runs(AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B),
     ],
 ]:
     cs.store(group="experiment", package="_global_", name=f"{_item['job']['name']}", node=_item)

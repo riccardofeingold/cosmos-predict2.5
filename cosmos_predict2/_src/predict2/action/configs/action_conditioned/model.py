@@ -57,6 +57,7 @@ FSDP_RECTIFIED_FLOW_CONFIG = dict(
         config=Video2WorldModelRectifiedFlowConfig(
             fsdp_shard_size=8,
             state_t=24,
+            text_encoder_config=None,
         ),
         _recursive_=False,
     ),

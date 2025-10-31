@@ -451,7 +451,9 @@ class WandBCallback(Callback):
     ) -> None:  # Log the timing results (over a number of iterations) and the training loss.
         if iteration % self.config.trainer.logging_iter == 0:
             timer_results = self.trainer.training_timer.compute_average_results()
+            print(f"Iteration {iteration} timing results: {timer_results}")
             if distributed.is_rank0():
+                print(f"Logging to W&B at iteration {iteration}")
                 wandb.log({f"timer/{key}": value for key, value in timer_results.items()}, step=iteration)
                 wandb.log({"train/loss": loss}, step=iteration)
                 wandb.log({"iteration": iteration}, step=iteration)

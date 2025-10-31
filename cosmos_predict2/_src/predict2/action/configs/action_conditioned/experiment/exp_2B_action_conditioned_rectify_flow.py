@@ -21,6 +21,7 @@ from hydra.core.config_store import ConfigStore
 
 from cosmos_predict2._src.imaginaire.lazy_config import LazyCall as L
 from cosmos_predict2._src.imaginaire.lazy_config import LazyDict
+from cosmos_predict2._src.imaginaire.utils.checkpoint_db import get_checkpoint_by_uuid
 from cosmos_predict2._src.predict2.datasets.cached_replay_dataloader import (
     duplicate_batches,
     duplicate_batches_random,
@@ -30,6 +31,8 @@ from cosmos_predict2._src.predict2.datasets.dataset_provider import get_image_da
 from cosmos_predict2._src.predict2.datasets.joint_dataloader import IterativeJointDataLoader
 from cosmos_predict2._src.predict2.models.video2world_model import HighSigmaStrategy
 from cosmos_predict2._src.predict2.text_encoders.text_encoder import EmbeddingConcatStrategy
+from cosmos_predict2.config import DEFAULT_CHECKPOINT
+
 
 _TRAINER_DEBUG_CONFIG = dict(
     max_iter=1000,
@@ -611,44 +614,75 @@ AC_REASON_EMBEDDINGS_RECTIFIED_FLOW_2B = LazyDict(
     flags={"allow_objects": True},
 )
 
+load_path = get_checkpoint_by_uuid(DEFAULT_CHECKPOINT.uuid)
 AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B = LazyDict(
     dict(
         defaults=[
-            "/experiment/Stage-c_pt_4-reason_embeddings-v1p1-Index-26-Size-2B-Res-720-Fps-16-Note-T2V_high_sigma_loss_reweighted_1_1_rectified_flow_only",
+            DEFAULT_CHECKPOINT.experiment,
             {"override /model": "action_conditioned_video2world_fsdp_rectified_flow"},
             {"override /net": "cosmos_v1_2B_action_conditioned"},
             {"override /conditioner": "action_conditioned_video_conditioner"},
-            {"override /data_train": "mock"},
-            {"override /data_val": "mock"},
+            {"override /data_train": "orca_frame_320_256_train"},
+            {"override /data_val": "orca_frame_320_256_val"},
         ],
         job=dict(
-            group="official_runs_vid2vid",
+            group="cosmos_predict_action_conditioned",
             name="cosmos_predict2p5_2B_reason_embeddings_action_conditioned_rectified_flow_orca_frame_320_256_",
             project="cosmos_predict2_action_conditioned",
+            wandb_mode="online"
         ),
         optimizer=dict(
             lr=2 ** (-14.5),  # 2**(-14.5) = 3.0517578125e-05
             weight_decay=0.1,
         ),
         checkpoint=dict(
-            save_iter=2_000,
-            load_path="cosmos_diffusion_v2/official_runs_text2world/Stage-c_pt_4-reason_embeddings-v1p1-Index-26-Size-2B-Res-720-Fps-16-Note-T2V_high_sigma_loss_reweighted/checkpoints/iter_000010000/",
-            load_training_state=False,
-            strict_resume=False,
+            # save_iter=2_000,
+            load_path=load_path.path, # if INTERNAL = 0 => gives hf path
+            # load_training_state=False,
+            # strict_resume=False,
+            save_to_object_store=dict(
+                enabled=False,
+            ),
+            load_from_object_store=dict(
+                enabled=False,
+            ),
         ),
         trainer=dict(
+            straggler_detection=dict(
+                enabled=False,
+            ),
             callbacks=dict(
+                iter_speed=dict(
+                    save_s3=False,
+                ),
+                heart_beat=dict(
+                    save_s3=False,
+                ),
+                device_monitor=dict(
+                    save_s3=False,
+                ),
                 every_n_sample_reg=dict(
                     every_n=500,
                     do_x0_prediction=False,
                     guidance=[0],
                     fps=5,
+                    save_s3=False,
                 ),
                 every_n_sample_ema=dict(
                     every_n=500,
                     do_x0_prediction=False,
                     guidance=[0],
                     fps=5,
+                    save_s3=False,
+                ),
+                wandb=dict(
+                    save_s3=False,
+                ),
+                wandb_10x=dict(
+                    save_s3=False,
+                ),
+                dataloader_speed=dict(
+                    save_s3=False,
                 ),
             ),
         ),
@@ -669,9 +703,9 @@ AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B = LazyDict(
                 ),
             ),
         ),
-        dataloader_train=dict(
-            batch_size=2,
-        ),
+        # dataloader_train=dict(
+        #     batch_size=2,
+        # ),
     ),
     flags={"allow_objects": True},
 )

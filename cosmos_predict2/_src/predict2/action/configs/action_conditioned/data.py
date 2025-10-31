@@ -31,10 +31,12 @@ except ImportError:
 
 # bridge dataset path
 # TODO: Adjust the base_path to your local dataset path
-base_path = "datasets/bridge/"
-train_annotation_path = os.path.join(base_path, "annotation/train")
-val_annotation_path = os.path.join(base_path, "annotation/val")
-test_annotation_path = os.path.join(base_path, "annotation/test")
+# get current working directory and set base_path accordingly
+cwd = os.getcwd()
+base_path = os.path.join(cwd, "../ORCA_dataset_merge_cosmos/")
+train_annotation_path = os.path.join(base_path, "train/annotation")
+val_annotation_path = os.path.join(base_path, "val/annotation")
+test_annotation_path = os.path.join(base_path, "test/annotation")
 
 
 # experiment for next-frame prediction
@@ -132,6 +134,7 @@ orca_frame_320_256_train_dataset = L(Dataset_3D)(
     accumulate_action=False,
     video_size=[320, 256],
     val_start_frame_interval=1,
+    gripper_key="continuous_hand_state",
     mode="train",
 )
 orca_frame_320_256_val_dataset = L(Dataset_3D)(
@@ -145,6 +148,7 @@ orca_frame_320_256_val_dataset = L(Dataset_3D)(
     accumulate_action=False,
     video_size=[320, 256],
     val_start_frame_interval=1,
+    gripper_key="continuous_hand_state",
     mode="val",
 )
 
@@ -286,6 +290,6 @@ def register_training_and_val_data():
         node=orca_frame_320_256_val_dataloader,
     )
 
-    # Register gr00t_customized_gr1 data
-    if register_gr00t_customized_gr1_data is not None:
-        register_gr00t_customized_gr1_data()
+    # # Register gr00t_customized_gr1 data
+    # if register_gr00t_customized_gr1_data is not None:
+    #     register_gr00t_customized_gr1_data()

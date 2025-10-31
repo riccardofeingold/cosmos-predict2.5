@@ -267,6 +267,7 @@ VideoPredictionConditionerV2: LazyDict = L(Video2WorldConditionerV2)(
     **_SHARED_CONFIG,
 )
 
+# do not use text as conditioning for action conditioned model
 ActionConditionedConditionerConfig: LazyDict = L(ActionConditionedConditioner)(
     **_SHARED_CONFIG,
     action=L(ReMapkey)(

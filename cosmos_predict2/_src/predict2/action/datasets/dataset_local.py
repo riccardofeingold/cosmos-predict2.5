@@ -128,8 +128,10 @@ class Dataset_3D(Dataset):
         self.accumulate_action = accumulate_action
         self.is_rollout = is_rollout
 
-        self.action_dim = 7  # ee xyz (3) + ee euler (3) + gripper(1)
-        self.c_act_scaler = [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, gripper_rescale_factor]
+        # self.action_dim = 7  # ee xyz (3) + ee euler (3) + gripper(1)
+        # TODO: Make more flexible for different gripper sizes
+        self.action_dim = 6 + 17 # ee xyz (3) + ee euler (3) + gripper(17)
+        self.c_act_scaler = [20.0, 20.0, 20.0, 20.0, 20.0, 20.0] + [gripper_rescale_factor] * 17
         self.c_act_scaler = np.array(self.c_act_scaler, dtype=float)
         self.ann_files = self._init_anns(self.data_path)
         self._filter_rollout()
@@ -306,7 +308,7 @@ class Dataset_3D(Dataset):
                 rel_rpy = rotm2euler(rel_rotm)
                 action[k - 1, 0:3] = rel_xyz
                 action[k - 1, 3:6] = rel_rpy
-                action[k - 1, 6] = curr_gripper
+                action[k - 1, 6:] = curr_gripper
         else:
             for k in range(1, action_num + 1):
                 prev_xyz = arm_states[k - 1, 0:3]
@@ -321,7 +323,7 @@ class Dataset_3D(Dataset):
                 rel_rpy = rotm2euler(rel_rotm)
                 action[k - 1, 0:3] = rel_xyz
                 action[k - 1, 3:6] = rel_rpy
-                action[k - 1, 6] = curr_gripper
+                action[k - 1, 6:] = curr_gripper
         return torch.from_numpy(action)  # (l - 1, act_dim)
 
     def _get_actions(self, arm_states, gripper_states, accumulate_action):
@@ -344,7 +346,7 @@ class Dataset_3D(Dataset):
                 rel_rpy = rotm2euler(rel_rotm)
                 action[k - 1, 0:3] = rel_xyz
                 action[k - 1, 3:6] = rel_rpy
-                action[k - 1, 6] = curr_gripper
+                action[k - 1, 6:] = curr_gripper
         else:
             for k in range(1, self.sequence_length):
                 prev_xyz = arm_states[k - 1, 0:3]
@@ -359,7 +361,7 @@ class Dataset_3D(Dataset):
                 rel_rpy = rotm2euler(rel_rotm)
                 action[k - 1, 0:3] = rel_xyz
                 action[k - 1, 3:6] = rel_rpy
-                action[k - 1, 6] = curr_gripper
+                action[k - 1, 6:] = curr_gripper
         return torch.from_numpy(action)  # (l - 1, act_dim)
 
     def __getitem__(self, index, cam_id=None, return_video=False):

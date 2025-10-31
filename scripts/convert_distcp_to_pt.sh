@@ -1,0 +1,7 @@
+# Get path to the latest checkpoint
+CHECKPOINTS_DIR=/data/cosmos_predict2.5/imaginaire4-output/cosmos_predict2_action_conditioned/cosmos_predict_action_conditioned/cosmos_predict2p5_2B_reason_embeddings_action_conditioned_rectified_flow_orca_frame_320_256_/checkpoints
+CHECKPOINT_ITER=$(cat $CHECKPOINTS_DIR/latest_checkpoint.txt)
+CHECKPOINT_DIR=$CHECKPOINTS_DIR/$CHECKPOINT_ITER
+
+# Convert DCP checkpoint to PyTorch format
+python scripts/convert_distcp_to_pt.py $CHECKPOINT_DIR/model $CHECKPOINT_DIR

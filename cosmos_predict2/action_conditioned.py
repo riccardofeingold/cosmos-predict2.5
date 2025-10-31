@@ -74,10 +74,16 @@ def _get_actions(arm_states, gripper_states, sequence_length, use_quat=False):
         np.ndarray: Array of actions with shape (sequence_length - 1, 7), where each action contains
             [relative_xyz (3), relative_rotation (3), gripper_state (1)].
     """
-    if use_quat:
-        action = np.zeros((sequence_length - 1, 8))
-    else:
-        action = np.zeros((sequence_length - 1, 7))
+    if gripper_states.ndim == 1:
+        if use_quat:
+            action = np.zeros((sequence_length - 1, 8))
+        else:
+            action = np.zeros((sequence_length - 1, 7))
+    elif gripper_states.ndim == 2:
+        if use_quat:
+            action = np.zeros((sequence_length - 1, 7 + gripper_states.shape[1]))
+        else:
+            action = np.zeros((sequence_length - 1, 6 + gripper_states.shape[1]))
 
     for k in range(1, sequence_length):
         prev_xyz = arm_states[k - 1, 0:3]
@@ -94,12 +100,12 @@ def _get_actions(arm_states, gripper_states, sequence_length, use_quat=False):
             rel_rot = rotm2quat(rel_rotm)
             action[k - 1, 0:3] = rel_xyz
             action[k - 1, 3:7] = rel_rot
-            action[k - 1, 7] = curr_gripper
+            action[k - 1, 7:] = curr_gripper
         else:
             rel_rot = rotm2euler(rel_rotm)
             action[k - 1, 0:3] = rel_xyz
             action[k - 1, 3:6] = rel_rot
-            action[k - 1, 6] = curr_gripper
+            action[k - 1, 6:] = curr_gripper
     return action  # (l - 1, act_dim)
 
 
@@ -122,8 +128,10 @@ def get_action_sequence_from_states(
         len(data[state_key][::fps_downsample_ratio]),
         use_quat=use_quat,
     )
+
+    actions_scalers = [action_scaler] * actions.shape[1]
     actions *= np.array(
-        [action_scaler, action_scaler, action_scaler, action_scaler, action_scaler, action_scaler, gripper_scale]
+        actions_scalers
     )
 
     return actions

@@ -101,10 +101,10 @@ droid_frame_180_320_train_dataset = L(Dataset_3D)(
     test_annotation_path=test_annotation_path,
     video_path=base_path,
     fps_downsample_ratio=1,
-    num_action_per_chunk=12,
+    num_action_per_chunk=16, # same as Ctrl-World paper: https://arxiv.org/pdf/2510.10125
     cam_ids=[0, 1, 2],
     accumulate_action=False,
-    video_size=[180, 320],
+    video_size=[1280, 720],
     val_start_frame_interval=1,
     mode="train",
 )
@@ -114,10 +114,10 @@ droid_frame_180_320_val_dataset = L(Dataset_3D)(
     test_annotation_path=test_annotation_path,
     video_path=base_path,
     fps_downsample_ratio=1,
-    num_action_per_chunk=12,
+    num_action_per_chunk=16,
     cam_ids=[0, 1, 2],
     accumulate_action=False,
-    video_size=[180, 320],
+    video_size=[1280, 720],
     val_start_frame_interval=1,
     mode="val",
 )

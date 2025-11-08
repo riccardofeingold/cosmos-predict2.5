@@ -128,10 +128,12 @@ class Dataset_3D(Dataset):
         self.accumulate_action = accumulate_action
         self.is_rollout = is_rollout
 
-        # self.action_dim = 7  # ee xyz (3) + ee euler (3) + gripper(1)
-        # TODO: Make more flexible for different gripper sizes
-        self.action_dim = 6 + 17 # ee xyz (3) + ee euler (3) + gripper(17)
-        self.c_act_scaler = [20.0, 20.0, 20.0, 20.0, 20.0, 20.0] + [gripper_rescale_factor] * 17
+        if "hand" in gripper_key:
+            self.hand_dim = 17
+        else:
+            self.hand_dim = 1
+        self.action_dim = 6 + self.hand_dim # ee xyz (3) + ee euler (3) + gripper(17)
+        self.c_act_scaler = [20.0, 20.0, 20.0, 20.0, 20.0, 20.0] + [gripper_rescale_factor] * self.hand_dim
         self.c_act_scaler = np.array(self.c_act_scaler, dtype=float)
         self.ann_files = self._init_anns(self.data_path)
         self._filter_rollout()
@@ -236,7 +238,10 @@ class Dataset_3D(Dataset):
         if pre_encode:
             raise NotImplementedError("Pre-encoded videos are not supported for this dataset.")
         else:
-            video_path = label["videos"][cam_id]["video_path"]
+            if "video_path" in label["videos"][cam_id]:
+                video_path = label["videos"][cam_id]["video_path"]
+            else:
+                video_path = label["videos"][cam_id]
             video_path = os.path.join(self.video_path, video_path)
             frames = self._load_video(video_path, frame_ids)
             frames = frames.astype(np.uint8)

@@ -1,0 +1,5 @@
+{
+    "inference_type": "text2world",
+    "name": "hand_motions",
+    "prompt_path": "hand_motions.txt"
+}

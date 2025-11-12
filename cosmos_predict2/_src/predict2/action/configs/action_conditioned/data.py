@@ -32,8 +32,15 @@ except ImportError:
 # bridge dataset path
 # TODO: Adjust the base_path to your local dataset path
 # get current working directory and set base_path accordingly
+PATH_MAP = {
+    "orca": "../ORCA_dataset_merge_cosmos/",
+    "orca_one_sample": "../FEW_SAMPLE_ORCA_DATASET/",
+    "droid": "../Datasets/cosmos_droid_dataset/",
+    "droid_one_sample": "../FEW_SAMPLE_DROID_DATASET/",
+}
+
 cwd = os.getcwd()
-base_path = os.path.join(cwd, "../ORCA_dataset_merge_cosmos/")
+base_path = os.path.join(cwd, PATH_MAP["droid_one_sample"])
 train_annotation_path = os.path.join(base_path, "train/annotation")
 val_annotation_path = os.path.join(base_path, "val/annotation")
 test_annotation_path = os.path.join(base_path, "test/annotation")
@@ -95,16 +102,17 @@ bridge_13frame_480_640_val_dataset = L(Dataset_3D)(
     mode="val",
 )
 
+#-------------------------------DROID DATASET 180 320-------------------------------
 droid_frame_180_320_train_dataset = L(Dataset_3D)(
     train_annotation_path=train_annotation_path,
     val_annotation_path=val_annotation_path,
     test_annotation_path=test_annotation_path,
     video_path=base_path,
     fps_downsample_ratio=1,
-    num_action_per_chunk=16, # same as Ctrl-World paper: https://arxiv.org/pdf/2510.10125
+    num_action_per_chunk=12,
     cam_ids=[0, 1, 2],
     accumulate_action=False,
-    video_size=[1280, 720],
+    video_size=[176, 320], # HEIGHT x WIDTH
     val_start_frame_interval=1,
     mode="train",
 )
@@ -114,16 +122,43 @@ droid_frame_180_320_val_dataset = L(Dataset_3D)(
     test_annotation_path=test_annotation_path,
     video_path=base_path,
     fps_downsample_ratio=1,
-    num_action_per_chunk=16,
+    num_action_per_chunk=12,
     cam_ids=[0, 1, 2],
     accumulate_action=False,
-    video_size=[1280, 720],
+    video_size=[176, 320], # HEIGHT x WIDTH => resizes the videos
+    val_start_frame_interval=1,
+    mode="val",
+)
+
+droid_frame_180_320_one_sample_train_dataset = L(Dataset_3D)(
+    train_annotation_path=train_annotation_path,
+    val_annotation_path=val_annotation_path,
+    test_annotation_path=test_annotation_path,
+    video_path=base_path,
+    fps_downsample_ratio=1,
+    num_action_per_chunk=12, # same as Ctrl-World paper: https://arxiv.org/pdf/2510.10125
+    cam_ids=[0],
+    accumulate_action=False,
+    video_size=[176, 320], # HEIGHT x WIDTH
+    val_start_frame_interval=1,
+    mode="train",
+)
+droid_frame_180_320_one_sample_val_dataset = L(Dataset_3D)(
+    train_annotation_path=train_annotation_path,
+    val_annotation_path=val_annotation_path,
+    test_annotation_path=test_annotation_path,
+    video_path=base_path,
+    fps_downsample_ratio=1,
+    num_action_per_chunk=12,
+    cam_ids=[0],
+    accumulate_action=False,
+    video_size=[176, 320], # HEIGHT x WIDTH
     val_start_frame_interval=1,
     mode="val",
 )
 
 # -------------------------------ORCA DATASET 320 256-------------------------------
-orca_frame_320_256_train_dataset = L(Dataset_3D)(
+orca_frame_256_320_train_dataset = L(Dataset_3D)(
     train_annotation_path=train_annotation_path,
     val_annotation_path=val_annotation_path,
     test_annotation_path=test_annotation_path,
@@ -132,12 +167,12 @@ orca_frame_320_256_train_dataset = L(Dataset_3D)(
     num_action_per_chunk=12,
     cam_ids=[0],
     accumulate_action=False,
-    video_size=[320, 256],
+    video_size=[256, 320], # HEIGHT x WIDTH
     val_start_frame_interval=1,
     gripper_key="continuous_hand_state",
     mode="train",
 )
-orca_frame_320_256_val_dataset = L(Dataset_3D)(
+orca_frame_256_320_val_dataset = L(Dataset_3D)(
     train_annotation_path=train_annotation_path,
     val_annotation_path=val_annotation_path,
     test_annotation_path=test_annotation_path,
@@ -146,7 +181,7 @@ orca_frame_320_256_val_dataset = L(Dataset_3D)(
     num_action_per_chunk=12,
     cam_ids=[0],
     accumulate_action=False,
-    video_size=[320, 256],
+    video_size=[256, 320], # HEIGHT x WIDTH
     val_start_frame_interval=1,
     gripper_key="continuous_hand_state",
     mode="val",
@@ -203,16 +238,29 @@ droid_frame_180_320_val_dataloader = L(DataLoader)(
     drop_last=True,
 )
 
-# -------------------------------ORCA DATASET 320 256-------------------------------
-orca_frame_320_256_train_dataloader = L(DataLoader)(
-    dataset=orca_frame_320_256_train_dataset,
-    sampler=L(get_sampler)(dataset=orca_frame_320_256_train_dataset),
+droid_frame_180_320_one_sample_train_dataloader = L(DataLoader)(
+    dataset=droid_frame_180_320_one_sample_train_dataset,
+    sampler=L(get_sampler)(dataset=droid_frame_180_320_one_sample_train_dataset),
     batch_size=1,
     drop_last=True,
 )
-orca_frame_320_256_val_dataloader = L(DataLoader)(
-    dataset=orca_frame_320_256_val_dataset,
-    sampler=L(get_sampler)(dataset=orca_frame_320_256_val_dataset),
+droid_frame_180_320_one_sample_val_dataloader = L(DataLoader)(
+    dataset=droid_frame_180_320_one_sample_val_dataset,
+    sampler=L(get_sampler)(dataset=droid_frame_180_320_one_sample_val_dataset),
+    batch_size=1,
+    drop_last=True,
+)
+
+# -------------------------------ORCA DATASET 256 320-------------------------------
+orca_frame_256_320_train_dataloader = L(DataLoader)(
+    dataset=orca_frame_256_320_train_dataset,
+    sampler=L(get_sampler)(dataset=orca_frame_256_320_train_dataset),
+    batch_size=1,
+    drop_last=True,
+)
+orca_frame_256_320_val_dataloader = L(DataLoader)(
+    dataset=orca_frame_256_320_val_dataset,
+    sampler=L(get_sampler)(dataset=orca_frame_256_320_val_dataset),
     batch_size=1,
     drop_last=True,
 )
@@ -276,18 +324,31 @@ def register_training_and_val_data():
         node=droid_frame_180_320_val_dataloader,
     )
 
-    # orca 320 256
     cs.store(
         group="data_train",
         package="dataloader_train",
-        name="orca_frame_320_256_train",
-        node=orca_frame_320_256_train_dataloader,
+        name="droid_frame_180_320_one_sample_train",
+        node=droid_frame_180_320_one_sample_train_dataloader,
     )
     cs.store(
         group="data_val",
         package="dataloader_val",
-        name="orca_frame_320_256_val",
-        node=orca_frame_320_256_val_dataloader,
+        name="droid_frame_180_320_one_sample_val",
+        node=droid_frame_180_320_one_sample_val_dataloader,
+    )
+
+    # orca 320 256
+    cs.store(
+        group="data_train",
+        package="dataloader_train",
+        name="orca_frame_256_320_train",
+        node=orca_frame_256_320_train_dataloader,
+    )
+    cs.store(
+        group="data_val",
+        package="dataloader_val",
+        name="orca_frame_256_320_val",
+        node=orca_frame_256_320_val_dataloader,
     )
 
     # # Register gr00t_customized_gr1 data

@@ -614,6 +614,7 @@ AC_REASON_EMBEDDINGS_RECTIFIED_FLOW_2B = LazyDict(
     flags={"allow_objects": True},
 )
 
+#------------------ORCA HAND SETTINGS------------------
 load_path = get_checkpoint_by_uuid(DEFAULT_CHECKPOINT.uuid)
 AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B = LazyDict(
     dict(
@@ -696,198 +697,7 @@ AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B = LazyDict(
                 max_num_conditional_frames=1,
                 # overwrite the probs to disable random num of conditional frames
                 conditional_frames_probs=None,
-                state_t=1 + 12 // 4,
-                net=dict(
-                    action_dim=6 + 17, # 6 for orca hand + 17 for orca fingers
-                    num_action_per_chunk=12,
-                ),
-            ),
-        ),
-        # dataloader_train=dict(
-        #     batch_size=2,
-        # ),
-    ),
-    flags={"allow_objects": True},
-)
-
-AC_REASON_EMBEDDINGS_DROID_HAND_RECTIFIED_FLOW_2B_SIMPLE = LazyDict(
-    dict(
-        defaults=[
-            DEFAULT_CHECKPOINT.experiment,
-            {"override /model": "action_conditioned_video2world_fsdp_rectified_flow"},
-            {"override /net": "cosmos_v1_2B_action_conditioned"},
-            {"override /conditioner": "action_conditioned_video_conditioner"},
-            {"override /data_train": "droid_frame_180_320_train"},
-            {"ovjjjerride /data_val": "droid_frame_180_320_val"},
-        ],
-        job=dict(
-            group="cosmos_predict_action_conditioned",
-            name="cosmos_predict2p5_2B_reason_embeddings_action_conditioned_rectified_flow_droid_frame_1270_720",
-            project="cosmos_predict2_action_conditioned",
-            wandb_mode="online"
-        ),
-        optimizer=dict(
-            lr=2 ** (-14.5),  # 2**(-14.5) = 3.0517578125e-05
-            weight_decay=0.1,
-        ),
-        checkpoint=dict(
-            # save_iter=2_000,
-            load_path=load_path.path, # if INTERNAL = 0 => gives hf path
-            # load_training_state=False,
-            # strict_resume=False,
-            save_to_object_store=dict(
-                enabled=False,
-            ),
-            load_from_object_store=dict(
-                enabled=False,
-            ),
-        ),
-        trainer=dict(
-            straggler_detection=dict(
-                enabled=False,
-            ),
-            callbacks=dict(
-                iter_speed=dict(
-                    save_s3=False,
-                ),
-                heart_beat=dict(
-                    save_s3=False,
-                ),
-                device_monitor=dict(
-                    save_s3=False,
-                ),
-                every_n_sample_reg=dict(
-                    every_n=500,
-                    do_x0_prediction=False,
-                    guidance=[0],
-                    fps=5,
-                    save_s3=False,
-                ),
-                every_n_sample_ema=dict(
-                    every_n=500,
-                    do_x0_prediction=False,
-                    guidance=[0],
-                    fps=5,
-                    save_s3=False,
-                ),
-                wandb=dict(
-                    save_s3=False,
-                ),
-                wandb_10x=dict(
-                    save_s3=False,
-                ),
-                dataloader_speed=dict(
-                    save_s3=False,
-                ),
-            ),
-        ),
-        model_parallel=dict(
-            context_parallel_size=1,
-        ),
-        model=dict(
-            config=dict(
-                # NOTE: this should be 1 for the action conditioned model
-                min_num_conditional_frames=1,
-                max_num_conditional_frames=1,
-                # overwrite the probs to disable random num of conditional frames
-                conditional_frames_probs=None,
-                state_t=1 + 16 // 4,
-                net=dict(
-                    action_dim=7, # 6 for orca hand + 17 for orca fingers
-                    num_action_per_chunk=16,
-                ),
-            ),
-        ),
-        # dataloader_train=dict(
-        #     batch_size=2,
-        # ),
-    ),
-    flags={"allow_objects": True},
-)
-
-AC_REASON_EMBEDDINGS_DROID_HAND_RECTIFIED_FLOW_2B_CAMERA = LazyDict(
-    dict(
-        defaults=[
-            DEFAULT_CHECKPOINT.experiment,
-            {"override /model": "action_conditioned_video2world_fsdp_rectified_flow"},
-            #TODO: Implement both cosmos_v1_2B_net_camera_and_action_conditioned and action_and_camera_conditioned_video_conditioner
-            {"override /net": "cosmos_v1_2B_net_camera_and_action_conditioned"},
-            {"override /conditioner": "action_and_camera_conditioned_video_conditioner"},
-            {"override /data_train": "droid_frame_180_320_train_dataset"},
-            {"override /data_val": "droid_frame_180_320_val_dataset"},
-        ],
-        job=dict(
-            group="cosmos_predict_action_conditioned",
-            name="cosmos_predict2p5_2B_reason_embeddings_action_conditioned_rectified_flow_orca_frame_320_256_",
-            project="cosmos_predict2_action_conditioned",
-            wandb_mode="online"
-        ),
-        optimizer=dict(
-            lr=2 ** (-14.5),  # 2**(-14.5) = 3.0517578125e-05
-            weight_decay=0.1,
-        ),
-        checkpoint=dict(
-            # save_iter=2_000,
-            load_path=load_path.path, # if INTERNAL = 0 => gives hf path
-            # load_training_state=False,
-            # strict_resume=False,
-            save_to_object_store=dict(
-                enabled=False,
-            ),
-            load_from_object_store=dict(
-                enabled=False,
-            ),
-        ),
-        trainer=dict(
-            straggler_detection=dict(
-                enabled=False,
-            ),
-            callbacks=dict(
-                iter_speed=dict(
-                    save_s3=False,
-                ),
-                heart_beat=dict(
-                    save_s3=False,
-                ),
-                device_monitor=dict(
-                    save_s3=False,
-                ),
-                every_n_sample_reg=dict(
-                    every_n=500,
-                    do_x0_prediction=False,
-                    guidance=[0],
-                    fps=5,
-                    save_s3=False,
-                ),
-                every_n_sample_ema=dict(
-                    every_n=500,
-                    do_x0_prediction=False,
-                    guidance=[0],
-                    fps=5,
-                    save_s3=False,
-                ),
-                wandb=dict(
-                    save_s3=False,
-                ),
-                wandb_10x=dict(
-                    save_s3=False,
-                ),
-                dataloader_speed=dict(
-                    save_s3=False,
-                ),
-            ),
-        ),
-        model_parallel=dict(
-            context_parallel_size=1,
-        ),
-        model=dict(
-            config=dict(
-                # NOTE: this should be 1 for the action conditioned model
-                min_num_conditional_frames=1,
-                max_num_conditional_frames=1,
-                # overwrite the probs to disable random num of conditional frames
-                conditional_frames_probs=None,
-                state_t=1 + 12 // 4,
+                state_t=1 + 12 // 4, # since videos are 5fps => we predict 2 seconds in the future
                 net=dict(
                     action_dim=6 + 17, # 6 for orca hand + 17 for orca fingers
                     num_action_per_chunk=12,
@@ -908,12 +718,12 @@ AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B_ONE_SAMPLE = LazyDict(
             {"override /model": "action_conditioned_video2world_fsdp_rectified_flow"},
             {"override /net": "cosmos_v1_2B_action_conditioned"},
             {"override /conditioner": "action_conditioned_video_conditioner"},
-            {"override /data_train": "orca_frame_320_256_train"},
-            {"override /data_val": "orca_frame_320_256_val"},
+            {"override /data_train": "orca_frame_256_320_train"},
+            {"override /data_val": "orca_frame_256_320_val"},
         ],
         job=dict(
             group="cosmos_predict_action_conditioned",
-            name="cosmos_predict2p5_2B_reason_embeddings_action_conditioned_rectified_flow_orca_frame_320_256_short_one_sample_dataset",
+            name="cosmos_predict2p5_2B_reason_embeddings_action_conditioned_rectified_flow_orca_frame_256_320_one_sample_dataset",
             project="cosmos_predict2_action_conditioned",
             wandb_mode="online"
         ),
@@ -982,106 +792,11 @@ AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B_ONE_SAMPLE = LazyDict(
                 max_num_conditional_frames=1,
                 # overwrite the probs to disable random num of conditional frames
                 conditional_frames_probs=None,
-                state_t=1 + 12 // 4,
+                state_t=1 + 12 // 4, # since videos are 5fps => we predict 2 seconds in the future
                 net=dict(
                     action_dim=6 + 17, # 6 for orca hand + 17 for orca fingers
                     num_action_per_chunk=12,
                 ),
-            ),
-        ),
-        # dataloader_train=dict(
-        #     batch_size=2,
-        # ),
-    ),
-    flags={"allow_objects": True},
-)
-AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B_LORA = LazyDict(
-    dict(
-        defaults=[
-            DEFAULT_CHECKPOINT.experiment,
-            {"override /model": "action_conditioned_video2world_fsdp_rectified_flow"},
-            {"override /net": "cosmos_v1_2B_action_conditioned"},
-            {"override /conditioner": "action_conditioned_video_conditioner"},
-            {"override /data_train": "orca_frame_320_256_train"},
-            {"override /data_val": "orca_frame_320_256_val"},
-        ],
-        job=dict(
-            group="cosmos_predict_action_conditioned",
-            name="cosmos_predict2p5_2B_reason_embeddings_action_conditioned_rectified_flow_orca_frame_320_256_one_sample_dataset_with_lora",
-            project="cosmos_predict2_action_conditioned",
-            wandb_mode="online"
-        ),
-        optimizer=dict(
-            lr=2 ** (-18),  # 2**(-18) = 3.814697265625e-06
-            weight_decay=0.1,
-        ),
-        checkpoint=dict(
-            # save_iter=2_000,
-            load_path=load_path.path, # if INTERNAL = 0 => gives hf path
-            # load_training_state=False,
-            # strict_resume=False,
-            save_to_object_store=dict(
-                enabled=False,
-            ),
-            load_from_object_store=dict(
-                enabled=False,
-            ),
-        ),
-        trainer=dict(
-            straggler_detection=dict(
-                enabled=False,
-            ),
-            callbacks=dict(
-                iter_speed=dict(
-                    save_s3=False,
-                ),
-                heart_beat=dict(
-                    save_s3=False,
-                ),
-                device_monitor=dict(
-                    save_s3=False,
-                ),
-                every_n_sample_reg=dict(
-                    every_n=500,
-                    do_x0_prediction=False,
-                    guidance=[0],
-                    fps=5,
-                    save_s3=False,
-                ),
-                every_n_sample_ema=dict(
-                    every_n=500,
-                    do_x0_prediction=False,
-                    guidance=[0],
-                    fps=5,
-                    save_s3=False,
-                ),
-                wandb=dict(
-                    save_s3=False,
-                ),
-                wandb_10x=dict(
-                    save_s3=False,
-                ),
-                dataloader_speed=dict(
-                    save_s3=False,
-                ),
-            ),
-        ),
-        model_parallel=dict(
-            context_parallel_size=1,
-        ),
-        model=dict(
-            config=dict(
-                # NOTE: this should be 1 for the action conditioned model
-                min_num_conditional_frames=1,
-                max_num_conditional_frames=1,
-                # overwrite the probs to disable random num of conditional frames
-                conditional_frames_probs=None,
-                state_t=1 + 12 // 4,
-                net=dict(
-                    action_dim=6 + 17, # 6 for orca hand + 17 for orca fingers
-                    num_action_per_chunk=12,
-                ),
-                use_lora=True
             ),
         ),
         # dataloader_train=dict(
@@ -1091,7 +806,8 @@ AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B_LORA = LazyDict(
     flags={"allow_objects": True},
 )
 
-AC_REASON_EMBEDDINGS_DROID_RECTIFIED_FLOW_2B_ONE_SAMPLE = LazyDict(
+#------------------DROID SETTINGS------------------
+AC_REASON_EMBEDDINGS_DROID_HAND_RECTIFIED_FLOW_2B_SIMPLE = LazyDict(
     dict(
         defaults=[
             DEFAULT_CHECKPOINT.experiment,
@@ -1103,7 +819,7 @@ AC_REASON_EMBEDDINGS_DROID_RECTIFIED_FLOW_2B_ONE_SAMPLE = LazyDict(
         ],
         job=dict(
             group="cosmos_predict_action_conditioned",
-            name="cosmos_predict2p5_2B_reason_embeddings_action_conditioned_rectified_flow_droid_frame_320_256_one_sample_dataset",
+            name="cosmos_predict2p5_2B_reason_embeddings_action_conditioned_rectified_flow_droid_frame_180_320",
             project="cosmos_predict2_action_conditioned",
             wandb_mode="online"
         ),
@@ -1172,7 +888,102 @@ AC_REASON_EMBEDDINGS_DROID_RECTIFIED_FLOW_2B_ONE_SAMPLE = LazyDict(
                 max_num_conditional_frames=1,
                 # overwrite the probs to disable random num of conditional frames
                 conditional_frames_probs=None,
-                state_t=1 + 12 // 4,
+                state_t=1 + 12 // 4, # since videos are 5fps => we predict 2 seconds in the future
+                net=dict(
+                    action_dim=7, # 6 for orca hand + 17 for orca fingers
+                    num_action_per_chunk=12,
+                ),
+            ),
+        ),
+        # dataloader_train=dict(
+        #     batch_size=2,
+        # ),
+    ),
+    flags={"allow_objects": True},
+)
+
+AC_REASON_EMBEDDINGS_DROID_RECTIFIED_FLOW_2B_ONE_SAMPLE = LazyDict(
+    dict(
+        defaults=[
+            DEFAULT_CHECKPOINT.experiment,
+            {"override /model": "action_conditioned_video2world_fsdp_rectified_flow"},
+            {"override /net": "cosmos_v1_2B_action_conditioned"},
+            {"override /conditioner": "action_conditioned_video_conditioner"},
+            {"override /data_train": "droid_frame_180_320_one_sample_train"},
+            {"override /data_val": "droid_frame_180_320_one_sample_val"},
+        ],
+        job=dict(
+            group="cosmos_predict_action_conditioned",
+            name="cosmos_predict2p5_2B_reason_embeddings_action_conditioned_rectified_flow_droid_frame_180_320_one_sample_dataset",
+            project="cosmos_predict2_action_conditioned",
+            wandb_mode="online"
+        ),
+        optimizer=dict(
+            lr=2 ** (-14.5),  # 2**(-14.5) = 3.0517578125e-05
+            weight_decay=0.1,
+        ),
+        checkpoint=dict(
+            # save_iter=2_000,
+            load_path=load_path.path, # if INTERNAL = 0 => gives hf path
+            # load_training_state=False,
+            # strict_resume=False,
+            save_to_object_store=dict(
+                enabled=False,
+            ),
+            load_from_object_store=dict(
+                enabled=False,
+            ),
+        ),
+        trainer=dict(
+            straggler_detection=dict(
+                enabled=False,
+            ),
+            callbacks=dict(
+                iter_speed=dict(
+                    save_s3=False,
+                ),
+                heart_beat=dict(
+                    save_s3=False,
+                ),
+                device_monitor=dict(
+                    save_s3=False,
+                ),
+                every_n_sample_reg=dict(
+                    every_n=500,
+                    do_x0_prediction=False,
+                    guidance=[0],
+                    fps=5,
+                    save_s3=False,
+                ),
+                every_n_sample_ema=dict(
+                    every_n=500,
+                    do_x0_prediction=False,
+                    guidance=[0],
+                    fps=5,
+                    save_s3=False,
+                ),
+                wandb=dict(
+                    save_s3=False,
+                ),
+                wandb_10x=dict(
+                    save_s3=False,
+                ),
+                dataloader_speed=dict(
+                    save_s3=False,
+                ),
+            ),
+        ),
+        model_parallel=dict(
+            context_parallel_size=1,
+        ),
+        model=dict(
+            config=dict(
+                # NOTE: this should be 1 for the action conditioned model
+                min_num_conditional_frames=1,
+                max_num_conditional_frames=1,
+                # overwrite the probs to disable random num of conditional frames
+                conditional_frames_probs=None,
+                state_t=1 + 12 // 4, # since videos are 5fps => we predict 2 seconds in the future
                 net=dict(
                     action_dim=7, # 6 for orca hand + 17 for orca fingers
                     num_action_per_chunk=12,
@@ -1258,10 +1069,6 @@ for _item, _item_wo_resume, _item_mock_wo_resume in [
     [
         AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B,
         *build_debug_runs(AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B),
-    ],
-    [
-        AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B_LORA,
-        *build_debug_runs(AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B_LORA),
     ],
     [
         AC_REASON_EMBEDDINGS_ORCA_HAND_RECTIFIED_FLOW_2B_ONE_SAMPLE,

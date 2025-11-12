@@ -532,7 +532,7 @@ class Video2WorldInference:
             n_sample=1,  # Generate one sample
             guidance=guidance,
             seed=seed,  # Fixed seed for reproducibility
-            is_negative_prompt=True,  # Use classifier-free guidance
+            is_negative_prompt=False,  # Use classifier-free guidance
             num_steps=num_steps,
             **extra_kwargs,
         )

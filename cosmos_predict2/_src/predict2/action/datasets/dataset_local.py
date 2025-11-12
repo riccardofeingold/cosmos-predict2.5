@@ -410,7 +410,6 @@ class Dataset_3D(Dataset):
                         data["__key__"] = label["episode_metadata"]["segment_id"]
 
             # Just add these to fit the interface
-            # TODO: does that have an impact on training performance? What if the videos use FPS=5Hz instead of 4Hz?
             data["fps"] = 4
             data["image_size"] = 256 * torch.ones(4).cuda()
             data["num_frames"] = self.sequence_length

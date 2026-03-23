@@ -1,7 +1,7 @@
 {
   "name": "basic",
   "input_root": "/data/FEW_SAMPLE_ORCA_DATASET",
-  "input_json_sub_folder": "test/annotation",
+  "input_json_sub_folder": "train/annotation",
   "save_root": "outputs/action_conditioned/orca_short",
   "guidance": 0,
   "resolution": "256,320",
